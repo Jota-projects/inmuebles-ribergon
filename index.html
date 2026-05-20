@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portal de Inmuebles · Ribergon</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
   <style>
@@ -113,11 +112,11 @@
         </select>
       </div>
       <div class="fg">
-        <label>Precio máx. (USD)</label>
-        <input type="number" id="fPrecioMax" placeholder="Sin límite" step="10000" oninput="render()" />
+        <label>Precio max. (USD)</label>
+        <input type="number" id="fPrecioMax" placeholder="Sin limite" step="10000" oninput="render()" />
       </div>
       <div class="fg">
-        <label>Metraje mín. (m²)</label>
+        <label>Metraje min. (m2)</label>
         <input type="number" id="fSupMin" placeholder="0" oninput="render()" />
       </div>
     </div>
@@ -136,71 +135,60 @@
 </div>
 
 <script>
-var API_URL = 'https://script.google.com/macros/s/AKfycbzKkFKSgq_Xe1sgz_hdZtDJcyWgsS_q3qnAdqe--2kzo_p1AcjhKrMxREnrzXJY_WkG/exec';
+var API = 'https://script.google.com/macros/s/AKfycbxjMNmIqKYL-W0ViZhmQ10iGCWe3b6FzkC7z26pfakqdR3bSTIQGnvfIA_HQ_WvXOzszg/exec';
 var tabActual = 'venta';
 var todos = [];
 
-function norm(s) { return (s || '').toString().toLowerCase().trim(); }
+var ICONOS = {
+  'casa':'ti-home','quinta':'ti-home','townhouse':'ti-home',
+  'apartamento':'ti-building','apto':'ti-building','piso':'ti-building',
+  'local':'ti-store','galpon':'ti-building-warehouse','galpones':'ti-building-warehouse',
+  'edificio':'ti-building-skyscraper','oficina':'ti-briefcase',
+  'terreno':'ti-trees','restaurante':'ti-tools-kitchen-2',
+  'estudio':'ti-layout-bottombar','garaje':'ti-car','finca':'ti-plant'
+};
 
-function iconoProp(t) {
-  var map = {'casa':'ti-home','quinta':'ti-home','apartamento':'ti-building','apto':'ti-building','piso':'ti-building','local':'ti-store','galpon':'ti-building-warehouse','galpones':'ti-building-warehouse','edificio':'ti-building-skyscraper','oficina':'ti-briefcase','terreno':'ti-trees','restaurante':'ti-tools-kitchen-2','estudio':'ti-layout-bottombar','garaje':'ti-car'};
-  return map[norm(t)] || 'ti-building';
+function icono(t) {
+  return ICONOS[(t || '').toLowerCase().trim()] || 'ti-building';
 }
 
-function mapRow(row) {
-  function get() {
-    var names = Array.prototype.slice.call(arguments);
-    var keys = Object.keys(row);
-    for (var ni = 0; ni < names.length; ni++) {
-      var n = norm(names[ni]);
-      for (var ki = 0; ki < keys.length; ki++) {
-        var k = keys[ki];
-        if (norm(k) === n || norm(k).indexOf(n) !== -1) {
-          if (row[k] !== '' && row[k] !== null && row[k] !== undefined) return row[k];
-        }
-      }
-    }
-    return '';
-  }
-  var codigoRaw = get('Codigo', 'Codigo', 'cod');
-  var metrajeRaw = String(get('Metraje', 'm2', 'superficie') || '');
-  var metraje = parseFloat(metrajeRaw.replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
-  var precioRaw = String(get('Precio') || '');
-  var precio = parseFloat(precioRaw.replace(/[^0-9.]/g,'')) || 0;
-  var estRaw = get('Est');
-  var estacionamientos = (estRaw !== '' && estRaw !== '-') ? (parseInt(estRaw) || 0) : 0;
+function num(v) {
+  return parseFloat(String(v || '').replace(/[^0-9.]/g, '')) || 0;
+}
+
+function mapRow(r) {
   return {
-    codigo: codigoRaw !== '' ? String(codigoRaw) : '',
-    accion: norm(String(get('Accion', 'Accion') || '')),
-    propiedad: String(get('Propiedad', 'tipo') || '').trim(),
-    localidad: String(get('Localidad', 'zona', 'barrio') || '').trim(),
-    metraje: metraje,
-    precio: precio,
-    hab: parseFloat(get('Hab', 'Habitaciones') || 0) || 0,
-    bano: parseFloat(get('Bano', 'Bano') || 0) || 0,
-    estacionamientos: estacionamientos
+    codigo:    String(r.codigo || ''),
+    accion:    String(r.accion || '').toLowerCase().trim(),
+    propiedad: String(r.propiedad || '').trim(),
+    localidad: String(r.localidad || '').trim(),
+    precio:    num(r.precio),
+    metraje:   num(r.metraje),
+    habs:      num(r.habs),
+    banos:     num(r.banos),
+    est:       num(r.est)
   };
 }
 
-function fetchData(callback) {
-  var cbName = 'cb_' + Date.now();
+function fetchData(cb) {
+  var name = 'cb_' + Date.now();
   var done = false;
-  var timeout = setTimeout(function() {
-    if (!done) { done = true; callback(new Error('timeout'), null); }
+  var t = setTimeout(function() {
+    if (!done) { done = true; cb('timeout'); }
   }, 12000);
-  window[cbName] = function(data) {
+  window[name] = function(data) {
     if (!done) {
       done = true;
-      clearTimeout(timeout);
-      delete window[cbName];
-      callback(null, data);
+      clearTimeout(t);
+      delete window[name];
+      cb(null, data);
     }
   };
   var s = document.createElement('script');
   s.onerror = function() {
-    if (!done) { done = true; clearTimeout(timeout); callback(new Error('script error'), null); }
+    if (!done) { done = true; clearTimeout(t); cb('error'); }
   };
-  s.src = API_URL + '?callback=' + cbName;
+  s.src = API + '?callback=' + name;
   document.head.appendChild(s);
 }
 
@@ -208,35 +196,35 @@ function cargar() {
   var btn = document.getElementById('syncBtn');
   var dot = document.getElementById('statusDot');
   var txt = document.getElementById('statusText');
-  var errEl = document.getElementById('errorMsg');
+  var err = document.getElementById('errorMsg');
   btn.classList.add('spinning');
   dot.className = 'status-dot loading';
   txt.textContent = 'Actualizando...';
-  errEl.style.display = 'none';
-  fetchData(function(err, data) {
+  err.style.display = 'none';
+
+  fetchData(function(error, data) {
     btn.classList.remove('spinning');
-    if (err) {
+    if (error) {
       dot.className = 'status-dot error';
       txt.textContent = 'Error al conectar';
-      errEl.textContent = 'No se pudo cargar el Sheet. Verifica que el Apps Script esta publicado.';
-      errEl.style.display = 'block';
-      document.getElementById('grid').innerHTML = '<div class="empty"><i class="ti ti-wifi-off"></i><p>Sin conexion con el Sheet</p></div>';
+      err.textContent = 'No se pudo cargar el Sheet. Verifica que el Apps Script esta publicado correctamente.';
+      err.style.display = 'block';
+      document.getElementById('grid').innerHTML = '<div class="empty"><i class="ti ti-wifi-off"></i><p>Sin conexion</p></div>';
       return;
     }
-    todos = data.map(mapRow).filter(function(x) { return x.accion && x.accion.length > 0; });
+    todos = data.map(mapRow).filter(function(x) { return x.accion !== ''; });
     dot.className = 'status-dot ok';
-    var ahora = new Date().toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
-    txt.textContent = todos.length + ' inmuebles · actualizado ' + ahora;
+    var hora = new Date().toLocaleTimeString('es-ES', {hour:'2-digit', minute:'2-digit'});
+    txt.textContent = todos.length + ' inmuebles · actualizado ' + hora;
     poblarSelects();
     render();
   });
 }
 
-function datos() {
-  return todos.filter(function(d) {
-    var a = d.accion;
-    if (tabActual === 'venta') return a.indexOf('venta') !== -1 || a.indexOf('vender') !== -1;
-    return a.indexOf('alquiler') !== -1 || a.indexOf('alquilar') !== -1 || a.indexOf('renta') !== -1 || a.indexOf('arrendar') !== -1;
+function porTab() {
+  return todos.filter(function(x) {
+    if (tabActual === 'venta') return x.accion === 'venta';
+    return x.accion === 'alquiler' || x.accion === 'renta' || x.accion === 'alquilar';
   });
 }
 
@@ -249,21 +237,23 @@ function switchTab(tab) {
 }
 
 function poblarSelects() {
-  var vd = todos.filter(function(d) { return d.accion.indexOf('venta') !== -1 || d.accion.indexOf('vender') !== -1; });
-  var ad = todos.filter(function(d) { return d.accion.indexOf('alquiler') !== -1 || d.accion.indexOf('alquilar') !== -1 || d.accion.indexOf('renta') !== -1; });
-  document.getElementById('cntVenta').textContent = vd.length;
-  document.getElementById('cntAlquiler').textContent = ad.length;
-  var d = datos();
-  function setSelect(id, arr, def) {
+  var venta = todos.filter(function(x) { return x.accion === 'venta'; });
+  var alq = todos.filter(function(x) { return x.accion === 'alquiler' || x.accion === 'renta' || x.accion === 'alquilar'; });
+  document.getElementById('cntVenta').textContent = venta.length;
+  document.getElementById('cntAlquiler').textContent = alq.length;
+
+  var d = porTab();
+  function llenar(id, valores, def) {
     var el = document.getElementById(id);
-    var v = el.value;
-    var unique = [];
-    arr.forEach(function(x) { if (x && unique.indexOf(x) === -1) unique.push(x); });
-    unique.sort();
-    el.innerHTML = '<option value="">' + def + '</option>' + unique.map(function(x) { return '<option' + (v === x ? ' selected' : '') + '>' + x + '</option>'; }).join('');
+    var sel = el.value;
+    var unicos = [];
+    valores.forEach(function(v) { if (v && unicos.indexOf(v) === -1) unicos.push(v); });
+    unicos.sort();
+    el.innerHTML = '<option value="">' + def + '</option>' +
+      unicos.map(function(v) { return '<option' + (sel === v ? ' selected' : '') + '>' + v + '</option>'; }).join('');
   }
-  setSelect('fProp', d.map(function(x) { return x.propiedad; }), 'Todas');
-  setSelect('fLoc', d.map(function(x) { return x.localidad; }), 'Todas');
+  llenar('fProp', d.map(function(x) { return x.propiedad; }), 'Todas');
+  llenar('fLoc',  d.map(function(x) { return x.localidad; }), 'Todas');
 }
 
 function resetFiltros() {
@@ -274,44 +264,51 @@ function resetFiltros() {
 }
 
 function render() {
-  var d = datos();
-  var prop = document.getElementById('fProp').value;
-  var loc = document.getElementById('fLoc').value;
-  var habs = parseInt(document.getElementById('fHabs').value) || 0;
+  var d = porTab();
+  var prop     = document.getElementById('fProp').value;
+  var loc      = document.getElementById('fLoc').value;
+  var habs     = parseInt(document.getElementById('fHabs').value) || 0;
   var precioMax = parseFloat(document.getElementById('fPrecioMax').value) || Infinity;
-  var supMin = parseFloat(document.getElementById('fSupMin').value) || 0;
+  var supMin   = parseFloat(document.getElementById('fSupMin').value) || 0;
+
   var f = d.filter(function(x) {
     if (prop && x.propiedad !== prop) return false;
-    if (loc && x.localidad !== loc) return false;
-    if (habs && x.hab < habs) return false;
-    if (x.precio > precioMax) return false;
-    if (x.metraje < supMin) return false;
+    if (loc  && x.localidad !== loc)  return false;
+    if (habs && x.habs < habs)        return false;
+    if (x.precio  > precioMax)        return false;
+    if (x.metraje < supMin)           return false;
     return true;
   });
-  document.getElementById('resultCount').textContent = f.length + ' inmueble' + (f.length !== 1 ? 's' : '') + ' encontrado' + (f.length !== 1 ? 's' : '');
+
+  document.getElementById('resultCount').textContent =
+    f.length + ' inmueble' + (f.length !== 1 ? 's' : '') + ' encontrado' + (f.length !== 1 ? 's' : '');
+
   var grid = document.getElementById('grid');
-  var esMes = tabActual === 'alquiler';
   if (!f.length) {
     grid.innerHTML = '<div class="empty"><i class="ti ti-building-off"></i><p>Sin resultados con estos filtros</p></div>';
     return;
   }
+
+  var esMes = tabActual === 'alquiler';
   grid.innerHTML = f.map(function(x) {
-    var precio = x.precio ? '$ ' + x.precio.toLocaleString('es-ES') + (esMes ? '/mes' : '') : '—';
-    var metrajeStr = x.metraje > 0 ? x.metraje.toLocaleString('es-ES') + ' m²' : '';
+    var precio = x.precio
+      ? '$ ' + x.precio.toLocaleString('es-ES') + (esMes ? '/mes' : '')
+      : 'Consultar';
+    var metro = x.metraje > 0 ? x.metraje.toLocaleString('es-ES') + ' m2' : '';
     return '<div class="card">' +
       '<div class="card-thumb">' +
-        '<i class="ti ' + iconoProp(x.propiedad) + '"></i>' +
-        '<span class="badge badge-prop">' + (x.propiedad || '—') + '</span>' +
+        '<i class="ti ' + icono(x.propiedad) + '"></i>' +
+        '<span class="badge badge-prop">' + (x.propiedad || 'Inmueble') + '</span>' +
         (x.codigo ? '<span class="badge badge-cod">' + x.codigo + '</span>' : '') +
       '</div>' +
       '<div class="card-body">' +
         '<div class="card-price">' + precio + '</div>' +
         '<div class="card-loc"><i class="ti ti-map-pin" style="font-size:12px"></i>' + (x.localidad || '—') + '</div>' +
         '<div class="card-meta">' +
-          (x.hab > 0 ? '<span><i class="ti ti-bed"></i>' + x.hab + ' hab.</span>' : '') +
-          (x.bano > 0 ? '<span><i class="ti ti-bath"></i>' + x.bano + ' baño' + (x.bano > 1 ? 's' : '') + '</span>' : '') +
-          (metrajeStr ? '<span><i class="ti ti-ruler-2"></i>' + metrajeStr + '</span>' : '') +
-          (x.estacionamientos > 0 ? '<span><i class="ti ti-car"></i>' + x.estacionamientos + ' est.</span>' : '') +
+          (x.habs  > 0 ? '<span><i class="ti ti-bed"></i>'     + x.habs  + ' hab.</span>'  : '') +
+          (x.banos > 0 ? '<span><i class="ti ti-bath"></i>'    + x.banos + ' bano' + (x.banos > 1 ? 's' : '') + '</span>' : '') +
+          (metro        ? '<span><i class="ti ti-ruler-2"></i>' + metro   + '</span>'        : '') +
+          (x.est   > 0 ? '<span><i class="ti ti-car"></i>'     + x.est   + ' est.</span>'   : '') +
         '</div>' +
       '</div>' +
     '</div>';
