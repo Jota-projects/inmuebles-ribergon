@@ -483,7 +483,7 @@
 
   <script>
     // ── CONFIGURACIÓN ──────────────────────────────────────────────
-    const API_URL = 'https://script.google.com/macros/s/AKfycbx_LjX30yMIjO5X4M3CLAHlDW008twLj8eXBjYo1DPdKJlsBIcrwh5MtFVxoHQjsVAdyQ/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzKkFKSgq_Xe1sgz_hdZtDJcyWgsS_q3qnAdqe--2kzo_p1AcjhKrMxREnrzXJY_WkG/exec';
     // ──────────────────────────────────────────────────────────────
 
     let tabActual = 'venta';
@@ -517,7 +517,7 @@
         accion:    norm(get('accion', 'acción', 'operacion', 'operación')),
         propiedad: String(get('propiedad', 'tipo')),
         localidad: String(get('localidad', 'zona', 'barrio', 'ciudad', 'ubicacion')),
-        metraje:   parseFloat(get('metraje', 'm2', 'm²', 'superficie', 'area')) || 0,
+        metraje:   parseFloat(String(get('metraje', 'm2', 'm²', 'superficie', 'area')).replace(/[^0-9.,]/g,'').replace(',','.')) || 0,
         precio:    parseFloat(String(get('precio')).replace(/[^0-9.]/g, '')) || 0,
         hab:       parseFloat(get('hab', 'habs', 'habitaciones', 'habitación')) || 0,
         bano:      parseFloat(get('baño', 'bano', 'baños', 'banos')) || 0,
