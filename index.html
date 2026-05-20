@@ -483,7 +483,7 @@
 
   <script>
     // ── CONFIGURACIÓN ──────────────────────────────────────────────
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyvewIT7qKHXibY4h2NsPfDqIQpBwGUqGnVh3mewSOq9J0CQe6qzMBDW4PWCpBordd1/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbx_LjX30yMIjO5X4M3CLAHlDW008twLj8eXBjYo1DPdKJlsBIcrwh5MtFVxoHQjsVAdyQ/exec';
     // ──────────────────────────────────────────────────────────────
 
     let tabActual = 'venta';
@@ -537,8 +537,15 @@
       errEl.style.display = 'none';
 
       try {
-        const res  = await fetch(API_URL);
-        const data = await res.json();
+        const data = await new Promise((resolve, reject) => {
+          const cbName = 'cb_' + Date.now();
+          const script = document.createElement('script');
+          const timeout = setTimeout(() => { reject(new Error('timeout')); script.remove(); delete window[cbName]; }, 10000);
+          window[cbName] = (d) => { clearTimeout(timeout); resolve(d); script.remove(); delete window[cbName]; };
+          script.src = API_URL + '?callback=' + cbName;
+          script.onerror = () => { clearTimeout(timeout); reject(new Error('error')); };
+          document.head.appendChild(script);
+        });
 
         todos = data.map(mapRow).filter(x => x.accion);
 
