@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portal de Inmuebles · Ribergon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #ffffff;
+      --bg2: #f7f7f5;
+      --bg3: #f0efe9;
+      --text: #1a1a18;
+      --text2: #6b6b67;
+      --text3: #a8a8a4;
+      --border: rgba(0,0,0,0.10);
+      --border2: rgba(0,0,0,0.18);
+      --radius: 8px;
+      --radius-lg: 12px;
+      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1c1c1a;
+        --bg2: #252523;
+        --bg3: #2e2e2b;
+        --text: #f0efe9;
+        --text2: #9a9a94;
+        --text3: #5e5e5a;
+        --border: rgba(255,255,255,0.10);
+        --border2: rgba(255,255,255,0.18);
+      }
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg3);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* HEADER */
+    .site-header {
+      padding: 32px 0 24px;
+      border-bottom: 0.5px solid var(--border);
+      margin-bottom: 28px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .site-header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 30px;
+      font-weight: 400;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .site-header p {
+      font-size: 13px;
+      color: var(--text2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #B4B2A9;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.ok { background: #639922; }
+    .status-dot.error { background: #E24B4A; }
+    .status-dot.loading { background: #EF9F27; animation: pulse 1s ease-in-out infinite; }
+
+    @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+    .sync-btn {
+      font-size: 13px;
+      color: var(--text2);
+      background: var(--bg);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 7px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .sync-btn:hover { color: var(--text); border-color: var(--text3); }
+    .sync-btn.spinning i { animation: spin 0.8s linear infinite; }
+
+    /* TABS */
+    .tabs {
+      display: flex;
+      gap: 4px;
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 4px;
+      width: fit-content;
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 7px 22px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--text2);
+      transition: all 0.15s;
+    }
+
+    .tab.active {
+      background: var(--bg);
+      color: var(--text);
+      border: 0.5px solid var(--border);
+      box-shadow: var(--shadow);
+    }
+
+    .tab .cnt {
+      font-size: 11px;
+      background: var(--bg3);
+      color: var(--text3);
+      padding: 1px 7px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+
+    .tab.active .cnt {
+      background: var(--bg2);
+      color: var(--text2);
+    }
+
+    /* FILTERS */
+    .filters-wrap {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+
+    .fg label {
+      display: block;
+      font-size: 10px;
+      font-weight: 500;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      margin-bottom: 5px;
+    }
+
+    .fg select,
+    .fg input[type="number"] {
+      width: 100%;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      padding: 8px 10px;
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      background: var(--bg2);
+      color: var(--text);
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .fg select:focus,
+    .fg input:focus {
+      outline: none;
+      border-color: var(--text3);
+    }
+
+    /* RESULTS BAR */
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .results-bar span {
+      font-size: 13px;
+      color: var(--text2);
+    }
+
+    .btn-reset {
+      font-size: 12px;
+      color: var(--text2);
+      background: none;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s;
+    }
+    .btn-reset:hover { border-color: var(--border2); color: var(--text); }
+
+    /* ERROR */
+    .error-msg {
+      background: #FCEBEB;
+      color: #A32D2D;
+      border: 0.5px solid #F09595;
+      border-radius: var(--radius);
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    /* GRID */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--bg);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      border-color: var(--border2);
+    }
+
+    .card-thumb {
+      width: 100%;
+      height: 160px;
+      background: var(--bg2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .card-thumb .ti {
+      font-size: 44px;
+      color: var(--text3);
+    }
+
+    .badge {
+      position: absolute;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border-radius: 20px;
+    }
+
+    .badge-prop {
+      top: 10px;
+      left: 10px;
+      background: var(--bg);
+      color: var(--text);
+      border: 0.5px solid var(--border2);
+    }
+
+    .badge-est {
+      top: 10px;
+      right: 10px;
+    }
+    .badge-est.disponible { background: #EAF3DE; color: #3B6D11; }
+    .badge-est.reservado  { background: #FAEEDA; color: #854F0B; }
+    .badge-est.vendido    { background: #FCEBEB; color: #A32D2D; }
+    .badge-est.alquilado  { background: #FCEBEB; color: #A32D2D; }
+
+    .badge-cod {
+      bottom: 10px;
+      left: 10px;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      font-family: monospace;
+      font-size: 10px;
+    }
+
+    .card-body { padding: 14px 16px; }
+
+    .card-price {
+      font-family: 'DM Serif Display', serif;
+      font-size: 22px;
+      font-weight: 400;
+      margin-bottom: 3px;
+    }
+
+    .card-loc {
+      font-size: 12px;
+      color: var(--text2);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--text2);
+      padding-top: 11px;
+      border-top: 0.5px solid var(--border);
+      flex-wrap: wrap;
+    }
+
+    .card-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* ESTADOS VACÍOS */
+    .empty {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text2);
+      grid-column: 1 / -1;
+    }
+
+    .empty .ti { font-size: 36px; display: block; margin-bottom: 10px; color: var(--text3); }
+
+    .loading-state {
+      text-align: center;
+      padding: 4rem 1rem;
+      color: var(--text2);
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .loading-state .ti { font-size: 28px; animation: spin 1s linear infinite; }
+
+    /* FOOTER */
+    .footer {
+      margin-top: 48px;
+      padding-top: 20px;
+      border-top: 0.5px solid var(--border);
+      text-align: center;
+      font-size: 12px;
+      color: var(--text3);
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 600px) {
+      .site-header h1 { font-size: 24px; }
+      .grid { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <header class="site-header">
+      <div>
+        <h1>Portal de inmuebles</h1>
+        <p>
+          <span class="status-dot loading" id="statusDot"></span>
+          <span id="statusText">Conectando...</span>
+        </p>
+      </div>
+      <button class="sync-btn" id="syncBtn" onclick="cargar()">
+        <i class="ti ti-refresh"></i> Actualizar
+      </button>
+    </header>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <div class="tabs">
+      <button class="tab active" id="tabVenta" onclick="switchTab('venta')">
+        Venta <span class="cnt" id="cntVenta">—</span>
+      </button>
+      <button class="tab" id="tabAlquiler" onclick="switchTab('alquiler')">
+        Alquiler <span class="cnt" id="cntAlquiler">—</span>
+      </button>
+    </div>
+
+    <div class="filters-wrap">
+      <div class="filters">
+        <div class="fg">
+          <label>Propiedad</label>
+          <select id="fProp" onchange="render()"><option value="">Todas</option></select>
+        </div>
+        <div class="fg">
+          <label>Localidad</label>
+          <select id="fLoc" onchange="render()"><option value="">Todas</option></select>
+        </div>
+        <div class="fg">
+          <label>Habitaciones</label>
+          <select id="fHabs" onchange="render()">
+            <option value="">Cualquiera</option>
+            <option value="1">1+</option>
+            <option value="2">2+</option>
+            <option value="3">3+</option>
+            <option value="4">4+</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Precio máximo</label>
+          <input type="number" id="fPrecioMax" placeholder="Sin límite" step="10000" oninput="render()" />
+        </div>
+        <div class="fg">
+          <label>Metraje mínimo (m²)</label>
+          <input type="number" id="fSupMin" placeholder="0" oninput="render()" />
+        </div>
+        <div class="fg">
+          <label>Estado</label>
+          <select id="fEst" onchange="render()"><option value="">Todos</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="results-bar">
+      <span id="resultCount">—</span>
+      <button class="btn-reset" onclick="resetFiltros()">
+        <i class="ti ti-x" style="font-size:11px"></i> Limpiar filtros
+      </button>
+    </div>
+
+    <div class="grid" id="grid">
+      <div class="loading-state">
+        <i class="ti ti-loader"></i>
+        <p>Cargando inmuebles...</p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      Portal de inmuebles · datos en tiempo real desde Google Sheets
+    </footer>
+
+  </div>
+
+  <script>
+    // ── CONFIGURACIÓN ──────────────────────────────────────────────
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzlsgjvykv8B-UfboZy1l_IQE_5lPEIXkvkOF1_G-h2ZopuDQ_EwmrH1w3VWxHdZDovkg/exec';
+    // ──────────────────────────────────────────────────────────────
+
+    let tabActual = 'venta';
+    let todos = [];
+
+    const norm = s => (s || '').toString().toLowerCase().trim();
+
+    const iconoProp = t => ({
+      'casa':        'ti-home',
+      'apartamento': 'ti-building',
+      'apto':        'ti-building',
+      'piso':        'ti-building',
+      'local':       'ti-store',
+      'estudio':     'ti-layout-bottombar',
+      'garaje':      'ti-car',
+      'terreno':     'ti-trees',
+      'oficina':     'ti-briefcase',
+    }[norm(t)] || 'ti-building');
+
+    function mapRow(row) {
+      const keys = Object.keys(row);
+      const get = (...names) => {
+        for (const n of names) {
+          const k = keys.find(k => norm(k) === norm(n) || norm(k).includes(norm(n)));
+          if (k !== undefined && row[k] !== '' && row[k] !== null) return row[k];
+        }
+        return '';
+      };
+      return {
+        codigo:    String(get('#', 'codigo', 'código', 'cod')),
+        accion:    norm(get('accion', 'acción', 'operacion', 'operación')),
+        propiedad: String(get('propiedad', 'tipo')),
+        localidad: String(get('localidad', 'zona', 'barrio', 'ciudad', 'ubicacion')),
+        metraje:   parseFloat(get('metraje', 'm2', 'm²', 'superficie', 'area')) || 0,
+        precio:    parseFloat(String(get('precio')).replace(/[^0-9.]/g, '')) || 0,
+        hab:       parseFloat(get('hab', 'habs', 'habitaciones', 'habitación')) || 0,
+        bano:      parseFloat(get('baño', 'bano', 'baños', 'banos')) || 0,
+        est:       String(get('est', 'estado')),
+      };
+    }
+
+    async function cargar() {
+      const btn     = document.getElementById('syncBtn');
+      const dot     = document.getElementById('statusDot');
+      const txt     = document.getElementById('statusText');
+      const errEl   = document.getElementById('errorMsg');
+
+      btn.classList.add('spinning');
+      dot.className = 'status-dot loading';
+      txt.textContent = 'Actualizando...';
+      errEl.style.display = 'none';
+
+      try {
+        const res  = await fetch(API_URL);
+        const data = await res.json();
+
+        todos = data.map(mapRow).filter(x => x.accion);
+
+        dot.className = 'status-dot ok';
+        const ahora = new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+        txt.textContent = `${todos.length} inmuebles · actualizado ${ahora}`;
+
+        poblarSelects();
+        render();
+
+      } catch (e) {
+        dot.className = 'status-dot error';
+        txt.textContent = 'Error al conectar';
+        errEl.textContent = 'No se pudo cargar el Sheet. Verifica que el Apps Script está publicado con acceso "Cualquier persona".';
+        errEl.style.display = 'block';
+        document.getElementById('grid').innerHTML = `
+          <div class="empty">
+            <i class="ti ti-wifi-off"></i>
+            <p>Sin conexión con el Sheet</p>
+          </div>`;
+      } finally {
+        btn.classList.remove('spinning');
+      }
+    }
+
+    function datos() {
+      return todos.filter(d => {
+        const a = d.accion;
+        return tabActual === 'venta'
+          ? (a.includes('venta') || a.includes('vender'))
+          : (a.includes('alquiler') || a.includes('alquilar') || a.includes('renta') || a.includes('arrendar'));
+      });
+    }
+
+    function switchTab(tab) {
+      tabActual = tab;
+      document.getElementById('tabVenta').classList.toggle('active', tab === 'venta');
+      document.getElementById('tabAlquiler').classList.toggle('active', tab === 'alquiler');
+      poblarSelects();
+      render();
+    }
+
+    function poblarSelects() {
+      const ventaD = todos.filter(d => { const a = d.accion; return a.includes('venta') || a.includes('vender'); });
+      const alqD   = todos.filter(d => { const a = d.accion; return a.includes('alquiler') || a.includes('alquilar') || a.includes('renta') || a.includes('arrendar'); });
+
+      document.getElementById('cntVenta').textContent    = ventaD.length;
+      document.getElementById('cntAlquiler').textContent = alqD.length;
+
+      const d = datos();
+      const setSelect = (id, arr, label = 'Todas') => {
+        const el = document.getElementById(id), v = el.value;
+        el.innerHTML = `<option value="">${label}</option>` +
+          [...new Set(arr.filter(Boolean))].sort()
+            .map(x => `<option${v === x ? ' selected' : ''}>${x}</option>`)
+            .join('');
+      };
+      setSelect('fProp', d.map(x => x.propiedad));
+      setSelect('fLoc',  d.map(x => x.localidad));
+      setSelect('fEst',  d.map(x => x.est), 'Todos');
+    }
+
+    function resetFiltros() {
+      ['fProp', 'fLoc', 'fHabs', 'fEst'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('fPrecioMax').value = '';
+      document.getElementById('fSupMin').value    = '';
+      render();
+    }
+
+    function render() {
+      const d        = datos();
+      const prop     = document.getElementById('fProp').value;
+      const loc      = document.getElementById('fLoc').value;
+      const habs     = parseInt(document.getElementById('fHabs').value) || 0;
+      const precioMax = parseFloat(document.getElementById('fPrecioMax').value) || Infinity;
+      const supMin   = parseFloat(document.getElementById('fSupMin').value) || 0;
+      const est      = document.getElementById('fEst').value;
+
+      const f = d.filter(x => {
+        if (prop && x.propiedad !== prop) return false;
+        if (loc  && x.localidad !== loc)  return false;
+        if (habs && x.hab < habs)         return false;
+        if (x.precio   > precioMax)       return false;
+        if (x.metraje  < supMin)          return false;
+        if (est  && x.est !== est)        return false;
+        return true;
+      });
+
+      document.getElementById('resultCount').textContent =
+        `${f.length} inmueble${f.length !== 1 ? 's' : ''} encontrado${f.length !== 1 ? 's' : ''}`;
+
+      const grid   = document.getElementById('grid');
+      const esMes  = tabActual === 'alquiler';
+
+      if (!f.length) {
+        grid.innerHTML = `<div class="empty"><i class="ti ti-building-off"></i><p>Sin resultados con estos filtros</p></div>`;
+        return;
+      }
+
+      grid.innerHTML = f.map(x => {
+        const precio = x.precio
+          ? x.precio.toLocaleString('es-ES') + ' €' + (esMes ? '/mes' : '')
+          : '—';
+        const estClass = norm(x.est);
+        return `
+          <div class="card">
+            <div class="card-thumb">
+              <i class="ti ${iconoProp(x.propiedad)}"></i>
+              <span class="badge badge-prop">${x.propiedad || '—'}</span>
+              ${x.est ? `<span class="badge badge-est ${estClass}">${x.est}</span>` : ''}
+              ${x.codigo ? `<span class="badge badge-cod">${x.codigo}</span>` : ''}
+            </div>
+            <div class="card-body">
+              <div class="card-price">${precio}</div>
+              <div class="card-loc"><i class="ti ti-map-pin" style="font-size:12px"></i>${x.localidad || '—'}</div>
+              <div class="card-meta">
+                ${x.hab    > 0 ? `<span><i class="ti ti-bed"></i>${x.hab} hab.</span>` : ''}
+                ${x.bano   > 0 ? `<span><i class="ti ti-bath"></i>${x.bano} baño${x.bano > 1 ? 's' : ''}</span>` : ''}
+                ${x.metraje > 0 ? `<span><i class="ti ti-ruler-2"></i>${x.metraje} m²</span>` : ''}
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    cargar();
+  </script>
+</body>
+</html>
