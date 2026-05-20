@@ -305,12 +305,6 @@
       color: var(--text);
       border: 0.5px solid var(--border2);
     }
-
-    .badge-est {
-      top: 10px;
-      right: 10px;
-    }
-    .badge-est.disponible { background: #EAF3DE; color: #3B6D11; }
     .badge-est.reservado  { background: #FAEEDA; color: #854F0B; }
     .badge-est.vendido    { background: #FCEBEB; color: #A32D2D; }
     .badge-est.alquilado  { background: #FCEBEB; color: #A32D2D; }
@@ -454,10 +448,7 @@
           <label>Metraje mínimo (m²)</label>
           <input type="number" id="fSupMin" placeholder="0" oninput="render()" />
         </div>
-        <div class="fg">
-          <label>Estado</label>
-          <select id="fEst" onchange="render()"><option value="">Todos</option></select>
-        </div>
+
       </div>
     </div>
 
@@ -510,6 +501,27 @@
           const k = keys.find(k => norm(k) === norm(n) || norm(k).includes(norm(n)));
           if (k !== undefined && row[k] !== '' && row[k] !== null) return row[k];
         }
+        return '';
+      };
+      const codigoRaw = get('código', 'codigo', 'cod');
+      const codigo = codigoRaw !== '' ? String(codigoRaw) : '';
+      const metrajeRaw = String(get('metraje', 'm2', 'm²', 'superficie', 'area'));
+      const metraje = parseFloat(metrajeRaw.replace(/[^0-9.,]/g,'').replace(',','.')) || 0;
+      const precio = parseFloat(String(get('precio')).replace(/[^0-9.]/g,'')) || 0;
+      const estRaw = get('est');
+      const estacionamientos = (estRaw !== '' && estRaw !== '-') ? parseInt(estRaw) || 0 : 0;
+      return {
+        codigo,
+        accion:           norm(get('accion', 'acción', 'operacion', 'operación')),
+        propiedad:        String(get('propiedad', 'tipo')).trim(),
+        localidad:        String(get('localidad', 'zona', 'barrio', 'ciudad', 'ubicacion')).trim(),
+        metraje,
+        precio,
+        hab:              parseFloat(get('hab', 'habs', 'habitaciones', 'habitación')) || 0,
+        bano:             parseFloat(get('baño', 'bano', 'baños', 'banos')) || 0,
+        estacionamientos,
+      };
+    }
         return '';
       };
       return {
@@ -605,7 +617,7 @@
       };
       setSelect('fProp', d.map(x => x.propiedad));
       setSelect('fLoc',  d.map(x => x.localidad));
-      setSelect('fEst',  d.map(x => x.est), 'Todos');
+
     }
 
     function resetFiltros() {
@@ -622,7 +634,7 @@
       const habs     = parseInt(document.getElementById('fHabs').value) || 0;
       const precioMax = parseFloat(document.getElementById('fPrecioMax').value) || Infinity;
       const supMin   = parseFloat(document.getElementById('fSupMin').value) || 0;
-      const est      = document.getElementById('fEst').value;
+
 
       const f = d.filter(x => {
         if (prop && x.propiedad !== prop) return false;
@@ -630,7 +642,7 @@
         if (habs && x.hab < habs)         return false;
         if (x.precio   > precioMax)       return false;
         if (x.metraje  < supMin)          return false;
-        if (est  && x.est !== est)        return false;
+
         return true;
       });
 
@@ -647,15 +659,14 @@
 
       grid.innerHTML = f.map(x => {
         const precio = x.precio
-          ? x.precio.toLocaleString('es-ES') + ' €' + (esMes ? '/mes' : '')
+          ? '$ ' + x.precio.toLocaleString('es-ES')  + (esMes ? '/mes' : '')
           : '—';
-        const estClass = norm(x.est);
+
         return `
           <div class="card">
             <div class="card-thumb">
               <i class="ti ${iconoProp(x.propiedad)}"></i>
               <span class="badge badge-prop">${x.propiedad || '—'}</span>
-              ${x.est ? `<span class="badge badge-est ${estClass}">${x.est}</span>` : ''}
               ${x.codigo ? `<span class="badge badge-cod">${x.codigo}</span>` : ''}
             </div>
             <div class="card-body">
@@ -664,7 +675,7 @@
               <div class="card-meta">
                 ${x.hab    > 0 ? `<span><i class="ti ti-bed"></i>${x.hab} hab.</span>` : ''}
                 ${x.bano   > 0 ? `<span><i class="ti ti-bath"></i>${x.bano} baño${x.bano > 1 ? 's' : ''}</span>` : ''}
-                ${x.metraje > 0 ? `<span><i class="ti ti-ruler-2"></i>${x.metraje} m²</span>` : ''}
+                ${x.metraje > 0 ? `<span><i class="ti ti-ruler-2"></i>${x.metraje.toLocaleString('es-ES')} m²</span>` : ''}
               </div>
             </div>
           </div>`;
